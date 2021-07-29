@@ -32,6 +32,12 @@ typedef enum {
   ND_SUB,
   ND_MUL,
   ND_DIV,
+  ND_EQUAL,
+  ND_NEQUAL,
+  ND_SMALLER,
+  ND_ESMALLER,
+  ND_LARGER,
+  ND_ELARGER,
   ND_NUM,
 } NodeKind;
 
@@ -94,11 +100,48 @@ bool consume(char *op) {
 }
 
 Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
 Node *primary();
 Node *unary();
 
 Node *expr() {
+  Node *node = equality();
+}
+
+Node *equality() {
+  Node *node = relational();
+
+  for(;;) {
+    if(consume("==")) 
+      node = new_node(ND_EQUAL, node, relational());
+    else if(consume("!="))
+      node = new_node(ND_NEQUAL, node, relational());
+    else
+      return node;
+  }
+}
+
+Node *relational() {
+  Node *node = add();
+
+  for(;;) {
+    if(consume("<"))
+      node = new_node(ND_SMALLER, node, add());
+    else if(consume("<="))
+      node = new_node(ND_ESMALLER, node, add());
+    else if(consume(">"))
+      node = new_node(ND_LARGER, node, add());
+    else if(consume(">="))
+      node = new_node(ND_ELARGER, node, add());
+    else 
+      return node;
+  }
+}
+
+Node *add() {
   Node *node = mul();
 
   for(;;) {
@@ -169,6 +212,36 @@ void gen(Node *node) {
       printf("  cqo\n");
       printf("  idiv rdi\n");
       break;
+    case ND_EQUAL:
+      printf("  cmp rax, rdi\n");
+      printf("  sete al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_NEQUAL:
+      printf("  cmp rax, rdi\n");
+      printf("  setne al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_SMALLER:
+      printf("  cmp rax, rdi\n");
+      printf("  setl al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_ESMALLER:
+      printf("  cmp rax, rdi\n");
+      printf("  setle al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_LARGER:
+      printf("  cmp rdi, rax\n");
+      printf("  setl al\n");
+      printf("  movzb rax, al\n");
+      break;
+    case ND_ELARGER:
+      printf("  cmp rdi, rax\n");
+      printf("  setle al\n");
+      printf("  movzb rax, al\n");
+      break;
   }
   printf("  push rax\n");
 }
@@ -198,11 +271,12 @@ Token *tokenize(char *p) {
     }
 
     if ((strlen(p) >= 2) && ((strncmp(p, "==", 2)==0) || (strncmp(p, "!=", 2)==0) || (strncmp(p, ">=", 2)==0) || (strncmp(p, "<=", 2)==0))) {
-      cur = new_token(TK_RESERVED, cur, p+=2, 2);
+      cur = new_token(TK_RESERVED, cur, p, 2);
+      p += 2;
       continue;
     }
 
-    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>') {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
