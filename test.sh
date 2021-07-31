@@ -30,5 +30,6 @@ assert 1 "2!=1"
 assert 0 "1<1"
 assert 0 "1!=1"
 assert 1 "3+2==5"
+assert 0 "3*4<1+2*2"
 
 echo OK
