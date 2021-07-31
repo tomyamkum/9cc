@@ -32,7 +32,10 @@ assert 0 "1<1;"
 assert 0 "1!=1;"
 assert 1 "3+2==5;"
 assert 0 "3*4<1+2*2;"
-assert 1 "a=1; b=2; a+1==b;"
+assert 1 "a=1; b=2; a+1==2;"
 assert 0 "d=5; z=2; z>d;"
+assert 1 "d=5; z=2; d==5;"
+assert 1 "hello=5; yey=2; hello==5;"
+assert 1 "hello=5; yey=2; hello>yey;"
 
 echo OK

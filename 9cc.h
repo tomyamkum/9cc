@@ -86,4 +86,17 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 
 void tokenize();
 
+bool usable_name(char *p);
 
+typedef struct LVar LVar;
+
+struct LVar {
+  LVar *next;
+  char *name;
+  int len;
+  int offset;
+};
+
+LVar *locals;
+
+LVar *find_lvar(Token *tok);
