@@ -1,10 +1,4 @@
 #include "9cc.h"
-#include<ctype.h>
-#include<stdarg.h>
-#include<stdbool.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   Node *node = calloc(1, sizeof(Node));

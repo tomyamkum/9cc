@@ -1,10 +1,4 @@
 #include "9cc.h"
-#include<ctype.h>
-#include<stdarg.h>
-#include<stdbool.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
 
 // 作成したnodeを深さ優先探索しながらアセンブリに落としていく
 void gen(Node *node) {
