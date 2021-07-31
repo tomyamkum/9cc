@@ -64,7 +64,7 @@ void expect(char *op);
 int expect_number();
 
 bool consume(char *op);
-bool contume_ident();
+Token *contume_ident();
 
 void program();
 Node *stmt();
