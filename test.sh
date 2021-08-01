@@ -37,5 +37,6 @@ assert 0 "d=5; z=2; z>d;"
 assert 1 "d=5; z=2; d==5;"
 assert 1 "hello=5; yey=2; hello==5;"
 assert 1 "hello=5; yey=2; hello>yey;"
+assert 4 "hello=2; yey = 2; return hello + yey; a = 1;"
 
 echo OK

@@ -45,6 +45,14 @@ Token *consume_ident() {
   return tok;
 }
 
+bool consume_return() {
+  if(token->kind != TK_RETURN) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
 ////////////////// ここまでtokenを直接触る関数 //////////////////
 
 Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
@@ -116,12 +124,20 @@ void tokenize() {
     //  cur = new_token(TK_IDENT, cur, user_input++, 1);
     //  continue;
     //}
+    int varlen = 0;
     if(usable_char(*user_input)) {
-      int varlen = 0;
       while(strlen(user_input)>varlen && usable_char(user_input[varlen])) {
         varlen++;
       }
-      cur = new_token(TK_IDENT, cur, substr(user_input, 0, varlen), varlen);
+    }
+
+    if(varlen>0) {
+      if((varlen==6) && (strncmp(user_input, "return", 6)==0)) {
+        cur = new_token(TK_RETURN, cur, "return", 6);
+      }
+      else {
+        cur = new_token(TK_IDENT, cur, substr(user_input, 0, varlen), varlen);
+      }
       user_input += varlen;
       continue;
     }
@@ -145,8 +161,20 @@ void program() {
 }
 
 Node *stmt() {
-  Node *node = expr();
-  expect(";");
+  Node *node;
+
+  if(consume_return()) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_RETURN;
+    node->lhs = expr();
+  }
+  else {
+    node = expr();
+  }
+
+  if(!consume(";")) {
+    error_at(token->str, "';'ではないトークンです");
+  }
   return node;
 }
 
