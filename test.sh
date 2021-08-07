@@ -38,5 +38,7 @@ assert 1 "d=5; z=2; d==5;"
 assert 1 "hello=5; yey=2; hello==5;"
 assert 1 "hello=5; yey=2; hello>yey;"
 assert 4 "hello=2; yey = 2; return hello + yey; a = 1;"
-
+assert 1 "hello=2; yey = 2; return hello == yey; a = 1;"
+assert 0 "hello=1;  yey = 2;  return hello == yey; a = 1;"
+assert 1 "if(3==1) return 3; return 1;"
 echo OK

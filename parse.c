@@ -5,6 +5,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   node->kind = kind;
   node->lhs = lhs;
   node->rhs = rhs;
+  //node->els = els;
   return node;
 }
 
@@ -47,6 +48,38 @@ Token *consume_ident() {
 
 bool consume_return() {
   if(token->kind != TK_RETURN) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
+bool consume_if() {
+  if(token->kind != TK_IF) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
+bool consume_else() {
+  if(token->kind != TK_ELSE) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
+bool consume_while() {
+  if(token->kind != TK_WHILE) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
+bool consume_for() {
+  if(token->kind != TK_FOR) {
     return false;
   }
   token = token->next;
@@ -135,6 +168,18 @@ void tokenize() {
       if((varlen==6) && (strncmp(user_input, "return", 6)==0)) {
         cur = new_token(TK_RETURN, cur, "return", 6);
       }
+      else if((varlen==2) && (strncmp(user_input, "if", 2)==0)) {
+        cur = new_token(TK_IF, cur, "if", 2);
+      }
+      else if((varlen==4) && (strncmp(user_input, "else", 4)==0)) {
+        cur = new_token(TK_ELSE, cur, "else", 4);
+      }
+      else if((varlen==5) && (strncmp(user_input, "while", 5)==0)) {
+        cur = new_token(TK_WHILE, cur, "while", 5);
+      }
+      else if((varlen==3) && (strncmp(user_input, "for", 3)==0)) {
+        cur = new_token(TK_FOR, cur, "for", 3);
+      }
       else {
         cur = new_token(TK_IDENT, cur, substr(user_input, 0, varlen), varlen);
       }
@@ -167,13 +212,34 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
+    if(!consume(";")) {
+      error_at(token->str, "';'ではないトークンです");
+    }
+  }
+  else if(consume_if()) {
+    if(!consume("(")) {
+      error_at(token->str, "'('ではないトークンです");
+    }
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_IF;
+    node->lhs = expr();
+    if(!consume(")")) {
+      error_at(token->str, "')'ではないトークンです");
+    }
+    node->rhs = stmt();
+    if(consume_else()) {
+      node->els = stmt();
+    }
+  }
+  else if(consume_while()) {
+  }
+  else if(consume_for()) {
   }
   else {
     node = expr();
-  }
-
-  if(!consume(";")) {
-    error_at(token->str, "';'ではないトークンです");
+    if(!consume(";")) {
+      error_at(token->str, "';'ではないトークンです");
+    }
   }
   return node;
 }
