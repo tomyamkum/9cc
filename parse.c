@@ -5,7 +5,6 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   node->kind = kind;
   node->lhs = lhs;
   node->rhs = rhs;
-  //node->els = els;
   return node;
 }
 

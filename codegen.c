@@ -25,11 +25,12 @@ void gen(Node *node) {
     printf("  cmp rax, 0\n");
     int label = LendNum;
     LendNum++;
-    //printf("  je .Lelse%d\n", label);
-    printf("  je .Lend%d\n", label);
+    printf("  je .Lelse%d\n", label);
     gen(node->rhs);
-    //printf(".Lelse%d:\n", label);
-    //gen(node->els);
+    printf("  jmp .Lend%d\n", label);
+    printf(".Lelse%d:\n", label);
+    if(node->els)
+      gen(node->els);
     printf(".Lend%d:\n", label);
     return;
   }
