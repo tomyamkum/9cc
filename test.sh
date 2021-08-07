@@ -43,4 +43,5 @@ assert 0 "hello=1;  yey = 2;  return hello == yey; a = 1;"
 assert 1 "if(3!=3) return 3; return 1;"
 assert 1 "if(3!=3) return 3; else return 1;"
 assert 3 "if(3!=3) return 3; else a = 1; return a+2;"
+assert 5 "a=1; while(a<5) a=a+1; return a;"
 echo OK

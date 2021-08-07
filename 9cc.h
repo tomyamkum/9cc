@@ -47,6 +47,8 @@ typedef enum {
   ND_NUM,
   ND_RETURN,
   ND_IF,
+  ND_WHILE,
+  ND_FOR,
 } NodeKind;
 
 typedef struct Node Node;
@@ -109,4 +111,4 @@ LVar *locals;
 
 LVar *find_lvar(Token *tok);
 
-int LendNum;
+int LNum;

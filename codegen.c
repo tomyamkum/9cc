@@ -23,14 +23,27 @@ void gen(Node *node) {
     gen(node->lhs);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
-    int label = LendNum;
-    LendNum++;
+    int label = LNum;
+    LNum++;
     printf("  je .Lelse%d\n", label);
     gen(node->rhs);
     printf("  jmp .Lend%d\n", label);
     printf(".Lelse%d:\n", label);
     if(node->els)
       gen(node->els);
+    printf(".Lend%d:\n", label);
+    return;
+  }
+  if(node->kind==ND_WHILE) {
+    int label = LNum;
+    LNum++;
+    printf(".Lbegin%d:\n", label);
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je .Lend%d\n", label);
+    gen(node->rhs);
+    printf("  jmp .Lbegin%d\n", label);
     printf(".Lend%d:\n", label);
     return;
   }

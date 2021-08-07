@@ -231,6 +231,16 @@ Node *stmt() {
     }
   }
   else if(consume_while()) {
+    if(!consume("(")) {
+      error_at(token->str, "'('ではないトークンです");
+    }
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_WHILE;
+    node->lhs = expr();
+    if(!consume(")")) {
+      error_at(token->str, "')'ではないトークンです");
+    }
+    node->rhs = stmt();
   }
   else if(consume_for()) {
   }
