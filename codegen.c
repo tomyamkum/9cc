@@ -9,6 +9,11 @@ void gen_lval(Node *node) {
   printf("  push rax\n");
 }
 
+static int count(void) {
+  static int i = 1;
+  return i++;
+}
+
 // 作成したnodeを深さ優先探索しながらアセンブリに落としていく
 void gen(Node *node) {
   if(node->kind==ND_RETURN) {
@@ -23,8 +28,7 @@ void gen(Node *node) {
     gen(node->lhs);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
-    int label = LNum;
-    LNum++;
+    int label = count();
     printf("  je .Lelse%d\n", label);
     gen(node->rhs);
     printf("  jmp .Lend%d\n", label);
@@ -35,8 +39,7 @@ void gen(Node *node) {
     return;
   }
   if(node->kind==ND_WHILE) {
-    int label = LNum;
-    LNum++;
+    int label = count();
     printf(".Lbegin%d:\n", label);
     gen(node->lhs);
     printf("  pop rax\n");
@@ -48,8 +51,7 @@ void gen(Node *node) {
     return;
   }
   if(node->kind==ND_FOR) {
-    int label = LNum;
-    LNum++;
+    int label = count();
     gen(node->forini);
     printf(".Lbegin%d:\n", label);
     gen(node->forstop);

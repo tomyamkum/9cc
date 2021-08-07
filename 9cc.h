@@ -113,5 +113,3 @@ struct LVar {
 LVar *locals;
 
 LVar *find_lvar(Token *tok);
-
-int LNum;
