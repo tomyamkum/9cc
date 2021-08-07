@@ -216,10 +216,10 @@ Node *stmt() {
     }
   }
   else if(consume_if()) {
+    node = calloc(1, sizeof(Node));
     if(!consume("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
-    node = calloc(1, sizeof(Node));
     node->kind = ND_IF;
     node->lhs = expr();
     if(!consume(")")) {
@@ -231,10 +231,10 @@ Node *stmt() {
     }
   }
   else if(consume_while()) {
+    node = calloc(1, sizeof(Node));
     if(!consume("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
-    node = calloc(1, sizeof(Node));
     node->kind = ND_WHILE;
     node->lhs = expr();
     if(!consume(")")) {
@@ -243,6 +243,30 @@ Node *stmt() {
     node->rhs = stmt();
   }
   else if(consume_for()) {
+    node = calloc(1, sizeof(Node));
+    if(!consume("(")) {
+      error_at(token->str, "'('ではないトークンです");
+    }
+    node->kind = ND_FOR;
+    if(!consume(";")) {
+      node->forini = expr();
+      if(!consume(";")) {
+        error_at(token->str, "';'ではないトークンです");
+      }
+    }
+    if(!consume(";")) {
+      node->forstop = expr();
+      if(!consume(";")) {
+        error_at(token->str, "';'ではないトークンです");
+      }
+    }
+    if(!consume(";")) {
+      node->forpro = expr();
+    }
+    if(!consume(")")) {
+      error_at(token->str, "')'ではないトークンです");
+    }
+    node->lhs = stmt();
   }
   else {
     node = expr();

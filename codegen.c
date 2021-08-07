@@ -47,6 +47,21 @@ void gen(Node *node) {
     printf(".Lend%d:\n", label);
     return;
   }
+  if(node->kind==ND_FOR) {
+    int label = LNum;
+    LNum++;
+    gen(node->forini);
+    printf(".Lbegin%d:\n", label);
+    gen(node->forstop);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je .Lend%d\n", label);
+    gen(node->lhs);
+    gen(node->forpro);
+    printf("  jmp .Lbegin%d\n", label);
+    printf(".Lend%d:\n", label);
+    return;
+  }
   switch(node->kind) {
     case ND_NUM:
       printf("  push %d\n", node->val);

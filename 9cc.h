@@ -59,6 +59,9 @@ struct Node {
   Node *lhs;
   Node *rhs;
   Node *els;
+  Node *forini;
+  Node *forstop;
+  Node *forpro;
   int val;
   int offset;
 };
