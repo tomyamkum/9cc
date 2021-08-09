@@ -72,11 +72,11 @@ Node *new_node_num(int val);
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
-void expect(char *op);
+bool expect(char *op);
 
-int expect_number();
 
-bool consume(char *op);
+bool consume(TokenKind tk);
+int consume_num();
 Token *contume_ident();
 
 void program();
