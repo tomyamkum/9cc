@@ -20,6 +20,7 @@ void gen(Node *node) {
     int i = 0;
     while(node->stmt[i]) {
       gen(node->stmt[i]);
+      printf("  pop rax\n");
       i++;
     }
     return;
