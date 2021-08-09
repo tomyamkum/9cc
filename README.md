@@ -8,16 +8,17 @@ docker build . -t "9cc"
 
 ## dockerコンテナの作成とログイン
 ```
-docker run -it 9cc /bin/bash
+docker run -it --name "9cc" -v $(pwd):/9cc 9cc /bin/sh
 ```
 
 ## dockerコンテナへのログイン
 ```
-docker exec -it <container-id> /bin/bash
+docker exec -it <container-id> /bin/sh
 ```
 
 ## コンパイラの動作確認
 ```
-cd /root/9cc
+cd /9cc
+make
 ./test.sh 
 ```
