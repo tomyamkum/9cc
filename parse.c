@@ -106,7 +106,7 @@ void tokenize() {
       continue;
     }
 
-    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';') {
+    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}') {
       cur = new_token(TK_RESERVED, cur, user_input++, 1);
       continue;
     }
@@ -171,9 +171,17 @@ void program() {
 
 Node *stmt() {
   Node *node;
+  node = calloc(1, sizeof(Node));
 
-  if(consume(TK_RETURN)) {
-    node = calloc(1, sizeof(Node));
+  if(expect("{")) {
+    int stmtnum = 0;
+    node->kind = ND_BLOCK;
+    int i = 0;
+    while(!expect("}")) 
+      node->stmt[i++] = stmt();
+    node->stmt[i] = NULL;
+  }
+  else if(consume(TK_RETURN)) {
     node->kind = ND_RETURN;
     node->lhs = expr();
     if(!expect(";")) {
@@ -181,7 +189,6 @@ Node *stmt() {
     }
   }
   else if(consume(TK_IF)) {
-    node = calloc(1, sizeof(Node));
     if(!expect("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
@@ -196,7 +203,6 @@ Node *stmt() {
     }
   }
   else if(consume(TK_WHILE)) {
-    node = calloc(1, sizeof(Node));
     if(!expect("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
@@ -208,7 +214,6 @@ Node *stmt() {
     node->rhs = stmt();
   }
   else if(consume(TK_FOR)) {
-    node = calloc(1, sizeof(Node));
     if(!expect("(")) {
       error_at(token->str, "'('ではないトークンです");
     }

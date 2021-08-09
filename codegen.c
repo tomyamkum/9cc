@@ -16,6 +16,14 @@ static int count(void) {
 
 // 作成したnodeを深さ優先探索しながらアセンブリに落としていく
 void gen(Node *node) {
+  if(node->kind==ND_BLOCK) {
+    int i = 0;
+    while(node->stmt[i]) {
+      gen(node->stmt[i]);
+      i++;
+    }
+    return;
+  }
   if(node->kind==ND_RETURN) {
     gen(node->lhs);
     printf("  pop rax\n");
