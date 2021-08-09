@@ -15,3 +15,9 @@ docker run -it 9cc /bin/bash
 ```
 docker exec -it <container-id> /bin/bash
 ```
+
+## コンパイラの動作確認
+```
+cd /root/9cc
+./test.sh 
+```
