@@ -16,25 +16,27 @@ Node *new_node_num(int val) {
 }
 
 ////////////////// ここからtokenを直接触る関数 //////////////////
-void expect(char *op) {
-  if(token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
-    error_at(token->str, "'%c'ではありません", op);
+bool expect(char *op) {
+  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
+    return false;
   token = token->next;
+  return true;
 }
 
-int expect_number() {
+bool consume(TokenKind tk) {
+  if(token->kind != tk) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
+int consume_num() {
   if (token->kind != TK_NUM)
     error_at(token->str, "数ではありません");
   int val = token->val;
   token = token->next;
   return val;
-}
-
-bool consume(char *op) {
-  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
-    return false;
-  token = token->next;
-  return true;
 }
 
 Token *consume_ident() {
@@ -44,47 +46,6 @@ Token *consume_ident() {
   token = token->next;
   return tok;
 }
-
-bool consume_return() {
-  if(token->kind != TK_RETURN) {
-    return false;
-  }
-  token = token->next;
-  return true;
-}
-
-bool consume_if() {
-  if(token->kind != TK_IF) {
-    return false;
-  }
-  token = token->next;
-  return true;
-}
-
-bool consume_else() {
-  if(token->kind != TK_ELSE) {
-    return false;
-  }
-  token = token->next;
-  return true;
-}
-
-bool consume_while() {
-  if(token->kind != TK_WHILE) {
-    return false;
-  }
-  token = token->next;
-  return true;
-}
-
-bool consume_for() {
-  if(token->kind != TK_FOR) {
-    return false;
-  }
-  token = token->next;
-  return true;
-}
-
 ////////////////// ここまでtokenを直接触る関数 //////////////////
 
 Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
@@ -113,6 +74,10 @@ char *substr(char *str, int s, int t) {
 
   strncpy(ans, str+s, t-s);
   return ans;
+}
+
+bool at_eof() {
+  return token->kind == TK_EOF;
 }
 
 LVar *find_lvar(Token *tok) {
@@ -207,70 +172,70 @@ void program() {
 Node *stmt() {
   Node *node;
 
-  if(consume_return()) {
+  if(consume(TK_RETURN)) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
-    if(!consume(";")) {
+    if(!expect(";")) {
       error_at(token->str, "';'ではないトークンです");
     }
   }
-  else if(consume_if()) {
+  else if(consume(TK_IF)) {
     node = calloc(1, sizeof(Node));
-    if(!consume("(")) {
+    if(!expect("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
     node->kind = ND_IF;
     node->lhs = expr();
-    if(!consume(")")) {
+    if(!expect(")")) {
       error_at(token->str, "')'ではないトークンです");
     }
     node->rhs = stmt();
-    if(consume_else()) {
+    if(consume(TK_ELSE)) {
       node->els = stmt();
     }
   }
-  else if(consume_while()) {
+  else if(consume(TK_WHILE)) {
     node = calloc(1, sizeof(Node));
-    if(!consume("(")) {
+    if(!expect("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
     node->kind = ND_WHILE;
     node->lhs = expr();
-    if(!consume(")")) {
+    if(!expect(")")) {
       error_at(token->str, "')'ではないトークンです");
     }
     node->rhs = stmt();
   }
-  else if(consume_for()) {
+  else if(consume(TK_FOR)) {
     node = calloc(1, sizeof(Node));
-    if(!consume("(")) {
+    if(!expect("(")) {
       error_at(token->str, "'('ではないトークンです");
     }
     node->kind = ND_FOR;
-    if(!consume(";")) {
+    if(!expect(";")) {
       node->forini = expr();
-      if(!consume(";")) {
+      if(!expect(";")) {
         error_at(token->str, "';'ではないトークンです");
       }
     }
-    if(!consume(";")) {
+    if(!expect(";")) {
       node->forstop = expr();
-      if(!consume(";")) {
+      if(!expect(";")) {
         error_at(token->str, "';'ではないトークンです");
       }
     }
-    if(!consume(";")) {
+    if(!expect(";")) {
       node->forpro = expr();
     }
-    if(!consume(")")) {
+    if(!expect(")")) {
       error_at(token->str, "')'ではないトークンです");
     }
     node->lhs = stmt();
   }
   else {
     node = expr();
-    if(!consume(";")) {
+    if(!expect(";")) {
       error_at(token->str, "';'ではないトークンです");
     }
   }
@@ -283,7 +248,7 @@ Node *expr() {
 
 Node *assign() {
   Node *node = equality();
-  if (consume("=")) 
+  if (expect("=")) 
     node = new_node(ND_ASSIGN, node, assign());
   return node;
 }
@@ -292,9 +257,9 @@ Node *equality() {
   Node *node = relational();
 
   for(;;) {
-    if(consume("==")) 
+    if(expect("==")) 
       node = new_node(ND_EQUAL, node, relational());
-    else if(consume("!="))
+    else if(expect("!="))
       node = new_node(ND_NEQUAL, node, relational());
     else
       return node;
@@ -305,13 +270,13 @@ Node *relational() {
   Node *node = add();
 
   for(;;) {
-    if(consume("<"))
+    if(expect("<"))
       node = new_node(ND_SMALLER, node, add());
-    else if(consume("<="))
+    else if(expect("<="))
       node = new_node(ND_ESMALLER, node, add());
-    else if(consume(">"))
+    else if(expect(">"))
       node = new_node(ND_LARGER, node, add());
-    else if(consume(">="))
+    else if(expect(">="))
       node = new_node(ND_ELARGER, node, add());
     else 
       return node;
@@ -322,9 +287,9 @@ Node *add() {
   Node *node = mul();
 
   for(;;) {
-    if(consume("+"))
+    if(expect("+"))
       node = new_node(ND_ADD, node, mul());
-    else if(consume("-"))
+    else if(expect("-"))
       node = new_node(ND_SUB, node, mul());
     else
       return node;
@@ -335,9 +300,9 @@ Node *mul() {
   Node *node = unary();
 
   for(;;) {
-    if(consume("*"))
+    if(expect("*"))
       node = new_node(ND_MUL, node, unary());
-    else if(consume("/"))
+    else if(expect("/"))
       node = new_node(ND_DIV, node, unary());
     else
       return node;
@@ -345,18 +310,19 @@ Node *mul() {
 }
 
 Node *unary() {
-  if(consume("+"))
+  if(expect("+"))
     return primary();
-  else if(consume("-"))
+  else if(expect("-"))
     return new_node(ND_SUB, new_node_num(0), primary());
   return primary();
 }
 
 
 Node *primary() {
-  if (consume("(")) {
+  if (expect("(")) {
     Node *node = expr();
-    expect(")");
+    if(!expect(")"))
+      error_at(token->str, "')'ではありません");
     return node;
   }
 
@@ -381,11 +347,6 @@ Node *primary() {
     return node;
   }
 
-  return new_node_num(expect_number());
-}
-
-
-bool at_eof() {
-  return token->kind == TK_EOF;
+  return new_node_num(consume_num());
 }
 
