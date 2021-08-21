@@ -106,7 +106,7 @@ void tokenize() {
       continue;
     }
 
-    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}') {
+    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}' || *user_input==',') {
       cur = new_token(TK_RESERVED, cur, user_input++, 1);
       continue;
     }
@@ -334,9 +334,28 @@ Node *primary() {
   Token *tok = consume_ident();
   if(tok) {
     Node *node = calloc(1, sizeof(Node));
+    LVar *lvar = find_lvar(tok);
+    if(expect("(")) {
+      node->kind = ND_FUNC;
+      node->name = tok->str;
+      if(lvar) {
+        node->offset = lvar->offset;
+      }
+      int i = 0;
+      node->argslen = 0;
+      while(1) {
+        if(expect(")")) break;
+        node->args[i++] = consume_num();
+        node->argslen++;
+        if(expect(")")) break;
+        if(!expect(",")) {
+          error_at(token->str, "','ではありません");
+        }
+      }
+      return node;
+    }
     node->kind = ND_LVAR;
 
-    LVar *lvar = find_lvar(tok);
     if(lvar) {
       node->offset = lvar->offset;
     }

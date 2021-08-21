@@ -50,6 +50,7 @@ typedef enum {
   ND_WHILE,
   ND_FOR,
   ND_BLOCK,
+  ND_FUNC,
 } NodeKind;
 
 typedef struct Node Node;
@@ -65,7 +66,10 @@ struct Node {
   Node *forpro;
   Node *stmt[100];
   int val;
+  int args[6];
+  int argslen;
   int offset;
+  char *name;
 };
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
@@ -115,3 +119,4 @@ struct LVar {
 LVar *locals;
 
 LVar *find_lvar(Token *tok);
+
