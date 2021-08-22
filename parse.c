@@ -106,7 +106,7 @@ void tokenize() {
       continue;
     }
 
-    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}' || *user_input==',') {
+    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}' || *user_input==',' || *user_input=='&') {
       cur = new_token(TK_RESERVED, cur, user_input++, 1);
       continue;
     }
@@ -347,9 +347,12 @@ Node *unary() {
     return primary();
   else if(expect("-"))
     return new_node(ND_SUB, new_node_num(0), primary());
+  else if(expect("&"))
+    return new_node(ND_ADDR, unary(), new_node_num(0));
+  else if(expect("*"))
+    return new_node(ND_DEREF, unary(), new_node_num(0));
   return primary();
 }
-
 
 Node *primary() {
   if (expect("(")) {

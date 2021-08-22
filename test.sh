@@ -55,4 +55,5 @@ assert 12 "main() {return mul_two(2, 5)+2;}"
 assert 6 "ret_4() return 4; main() {return ret_4() + 2;}"
 assert 16 "ret_pow(a) {return a*a;} main() {ret_pow(2); return ret_pow(ret_pow(2));}"
 assert 15 "fib(n) {if(n<=1) return n; else return fib(n-1)+n;} main() {return fib(5);}"
+assert 3 "main() {x=3;y=&x;return *y;}"
 echo OK
