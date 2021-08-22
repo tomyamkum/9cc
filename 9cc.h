@@ -51,6 +51,7 @@ typedef enum {
   ND_FOR,
   ND_BLOCK,
   ND_FUNC,
+  ND_CALL,
 } NodeKind;
 
 typedef struct Node Node;
@@ -66,10 +67,11 @@ struct Node {
   Node *forpro;
   Node *stmt[100];
   int val;
-  int args[6];
+  Node *callargs[6];
   int argslen;
   int offset;
   char *name;
+  Node *funcargs[6];
 };
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
@@ -86,6 +88,7 @@ int consume_num();
 Token *contume_ident();
 
 void program();
+Node *top_level();
 Node *stmt();
 Node *assign();
 Node *expr();

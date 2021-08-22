@@ -20,11 +20,9 @@ static int count(void) {
 void gen(Node *node) {
   if(node->kind==ND_BLOCK) {
     int i = 0;
-    while(node->stmt[i]) {
-      gen(node->stmt[i]);
-      printf("  pop rax\n");
-      i++;
-    }
+    while(node->stmt[i]) 
+      gen(node->stmt[i++]);
+    printf("  pop rax\n");
     return;
   }
   if(node->kind==ND_RETURN) {
@@ -76,6 +74,24 @@ void gen(Node *node) {
     return;
   }
   switch(node->kind) {
+    case ND_FUNC:
+      printf("%s:\n", node->name);
+      printf("  push rbp\n");
+      printf("  mov rbp, rsp\n");
+      printf("  sub rsp, 208\n");
+
+      for(int i=0;i<node->argslen;++i) {
+        gen_lval(node->funcargs[i]);
+        printf("  push %s\n", argregs[i]);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
+        printf("  mov [rax], rdi\n");
+      }
+      int i = 0;
+      while(node->stmt[i]) 
+        gen(node->stmt[i++]);
+      printf("  pop rax\n");
+      return;
     case ND_NUM:
       printf("  push %d\n", node->val);
       return;
@@ -85,9 +101,13 @@ void gen(Node *node) {
       printf("  mov rax, [rax]\n");
       printf("  push rax\n");
       return;
-    case ND_FUNC:
+    case ND_CALL:
+      for(int i=node->argslen-1;i>=0;--i) {
+        gen(node->callargs[i]);
+      }
       for(int i=0;i<node->argslen;++i) {
-        printf("  mov %s, %d\n", argregs[i], node->args[i]);
+        printf("  pop rax\n");
+        printf("  mov %s, rax\n", argregs[i]);
       }
       printf("  call %s\n", node->name);
       printf("  push rax\n");

@@ -117,10 +117,6 @@ void tokenize() {
       continue;
     }
 
-    //if ('a' <= *user_input && *user_input <= 'z') {
-    //  cur = new_token(TK_IDENT, cur, user_input++, 1);
-    //  continue;
-    //}
     int varlen = 0;
     if(usable_char(*user_input)) {
       while(strlen(user_input)>varlen && usable_char(user_input[varlen])) {
@@ -161,12 +157,44 @@ void tokenize() {
 
 
 void program() {
+  int i = 0;
+  while(!at_eof()) {
+    code[i++] = top_level();
+  }
+  code[i] = NULL;
+}
+
+Node *top_level() {
   locals = calloc(1, sizeof(LVar));
   locals->offset = 0;
-  int i = 0;
-  while(!at_eof()) 
-    code[i++] = stmt();
-  code[i] = NULL;
+  Node *node;
+  Token *tok = consume_ident();
+  if(tok) {
+    Node *node = calloc(1, sizeof(Node));
+    if(expect("(")) {
+      node->kind = ND_FUNC;
+      node->name = tok->str;
+      int i = 0;
+      node->argslen = 0;
+      while(!expect(")")) {
+        node->funcargs[i++] = primary();
+        node->argslen++;
+        expect(",");
+      }
+      if(expect("{")) {
+        int i = 0;
+        while(!expect("}")) {
+          node->stmt[i++] = stmt();
+        }
+        node->stmt[i] = NULL;
+      }
+      else {
+        node->stmt[0] = stmt();
+        node->stmt[1] = NULL;
+      }
+      return node;
+    }
+  }
 }
 
 Node *stmt() {
@@ -334,27 +362,18 @@ Node *primary() {
   Token *tok = consume_ident();
   if(tok) {
     Node *node = calloc(1, sizeof(Node));
-    LVar *lvar = find_lvar(tok);
     if(expect("(")) {
-      node->kind = ND_FUNC;
+      node->kind = ND_CALL;
       node->name = tok->str;
-      if(lvar) {
-        node->offset = lvar->offset;
-      }
-      int i = 0;
       node->argslen = 0;
-      while(1) {
-        if(expect(")")) break;
-        node->args[i++] = consume_num();
-        node->argslen++;
-        if(expect(")")) break;
-        if(!expect(",")) {
-          error_at(token->str, "','ではありません");
-        }
+      while(!expect(")")) {
+        node->callargs[node->argslen++] = expr();
+        expect(",");
       }
       return node;
     }
     node->kind = ND_LVAR;
+    LVar *lvar = find_lvar(tok);
 
     if(lvar) {
       node->offset = lvar->offset;
