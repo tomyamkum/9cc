@@ -106,7 +106,7 @@ void tokenize() {
       continue;
     }
 
-    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}' || *user_input==',') {
+    if (*user_input == '+' || *user_input == '-' || *user_input == '*' || *user_input == '/' || *user_input == '(' || *user_input == ')' || *user_input == '<' || *user_input == '>' || *user_input == '=' || *user_input == ';' || *user_input=='{' || *user_input=='}' || *user_input==',' || *user_input=='&') {
       cur = new_token(TK_RESERVED, cur, user_input++, 1);
       continue;
     }
@@ -140,6 +140,9 @@ void tokenize() {
       else if((varlen==3) && (strncmp(user_input, "for", 3)==0)) {
         cur = new_token(TK_FOR, cur, "for", 3);
       }
+      else if((varlen==3) && (strncmp(user_input, "int", 3)==0)) {
+        cur = new_token(TK_INT, cur, "int", 3);
+      }
       else {
         cur = new_token(TK_IDENT, cur, substr(user_input, 0, varlen), varlen);
       }
@@ -168,16 +171,28 @@ Node *top_level() {
   locals = calloc(1, sizeof(LVar));
   locals->offset = 0;
   Node *node;
+  if(!consume(TK_INT)) 
+    error_at(token->str, "型定義してください");
   Token *tok = consume_ident();
   if(tok) {
     Node *node = calloc(1, sizeof(Node));
     if(expect("(")) {
       node->kind = ND_FUNC;
       node->name = tok->str;
-      int i = 0;
       node->argslen = 0;
       while(!expect(")")) {
-        node->funcargs[i++] = primary();
+        consume(TK_INT);
+        Token *tok = consume_ident();
+        LVar *lvar;
+        lvar = calloc(1, sizeof(LVar));
+        lvar->next = locals;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        lvar->offset = locals->offset + 8;
+        locals = lvar;
+        node->funcargs[node->argslen] = calloc(1, sizeof(Node));
+        node->funcargs[node->argslen]->offset = lvar->offset;
+        node->funcargs[node->argslen]->kind = ND_LVAR;
         node->argslen++;
         expect(",");
       }
@@ -208,6 +223,21 @@ Node *stmt() {
     while(!expect("}")) 
       node->stmt[i++] = stmt();
     node->stmt[i] = NULL;
+  }
+  else if(consume(TK_INT)) {
+    Token *tok = consume_ident();
+    node->kind = ND_LVAR;
+    LVar *lvar;
+    lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    lvar->offset = locals->offset + 8;
+    node->offset = lvar->offset;
+    locals = lvar;
+    if(!expect(";")) {
+      error_at(token->str, "';'ではないトークンです");
+    }
   }
   else if(consume(TK_RETURN)) {
     node->kind = ND_RETURN;
@@ -347,9 +377,12 @@ Node *unary() {
     return primary();
   else if(expect("-"))
     return new_node(ND_SUB, new_node_num(0), primary());
+  else if(expect("&"))
+    return new_node(ND_ADDR, unary(), new_node_num(0));
+  else if(expect("*"))
+    return new_node(ND_DEREF, unary(), new_node_num(0));
   return primary();
 }
-
 
 Node *primary() {
   if (expect("(")) {
@@ -379,13 +412,8 @@ Node *primary() {
       node->offset = lvar->offset;
     }
     else {
-      lvar = calloc(1, sizeof(LVar));
-      lvar->next = locals;
-      lvar->name = tok->str;
-      lvar->len = tok->len;
-      lvar->offset = locals->offset + 8;
-      node->offset = lvar->offset;
-      locals = lvar;
+      printf("%s\n", tok->str);
+      error_at(token->str, "定義されていない変数です");
     }
     return node;
   }

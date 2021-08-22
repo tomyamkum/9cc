@@ -18,63 +18,69 @@ static int count(void) {
 
 // 作成したnodeを深さ優先探索しながらアセンブリに落としていく
 void gen(Node *node) {
-  if(node->kind==ND_BLOCK) {
-    int i = 0;
-    while(node->stmt[i]) 
-      gen(node->stmt[i++]);
-    printf("  pop rax\n");
-    return;
-  }
-  if(node->kind==ND_RETURN) {
-    gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
-    return;
-  }
-  if(node->kind==ND_IF) {
-    gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  cmp rax, 0\n");
-    int label = count();
-    printf("  je .Lelse%d\n", label);
-    gen(node->rhs);
-    printf("  jmp .Lend%d\n", label);
-    printf(".Lelse%d:\n", label);
-    if(node->els)
-      gen(node->els);
-    printf(".Lend%d:\n", label);
-    return;
-  }
-  if(node->kind==ND_WHILE) {
-    int label = count();
-    printf(".Lbegin%d:\n", label);
-    gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  cmp rax, 0\n");
-    printf("  je .Lend%d\n", label);
-    gen(node->rhs);
-    printf("  jmp .Lbegin%d\n", label);
-    printf(".Lend%d:\n", label);
-    return;
-  }
-  if(node->kind==ND_FOR) {
-    int label = count();
-    gen(node->forini);
-    printf(".Lbegin%d:\n", label);
-    gen(node->forstop);
-    printf("  pop rax\n");
-    printf("  cmp rax, 0\n");
-    printf("  je .Lend%d\n", label);
-    gen(node->lhs);
-    gen(node->forpro);
-    printf("  jmp .Lbegin%d\n", label);
-    printf(".Lend%d:\n", label);
-    return;
-  }
   switch(node->kind) {
+    case ND_BLOCK:
+    {
+      int i = 0;
+      while(node->stmt[i]) 
+        gen(node->stmt[i++]);
+      printf("  pop rax\n");
+      return;
+    }
+    case ND_RETURN:
+    {
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  mov rsp, rbp\n");
+      printf("  pop rbp\n");
+      printf("  ret\n");
+      return;
+    }
+    case ND_IF:
+    {
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      int label = count();
+      printf("  je .Lelse%d\n", label);
+      gen(node->rhs);
+      printf("  jmp .Lend%d\n", label);
+      printf(".Lelse%d:\n", label);
+      if(node->els)
+        gen(node->els);
+      printf(".Lend%d:\n", label);
+      return;
+    }
+    case ND_WHILE:
+    {
+      int label = count();
+      printf(".Lbegin%d:\n", label);
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      printf("  je .Lend%d\n", label);
+      gen(node->rhs);
+      printf("  jmp .Lbegin%d\n", label);
+      printf(".Lend%d:\n", label);
+      return;
+    }
+    case ND_FOR:
+    {
+      int label = count();
+      gen(node->forini);
+      printf(".Lbegin%d:\n", label);
+      gen(node->forstop);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      printf("  je .Lend%d\n", label);
+      gen(node->lhs);
+      gen(node->forpro);
+      printf("  jmp .Lbegin%d\n", label);
+      printf(".Lend%d:\n", label);
+      return;
+    }
     case ND_FUNC:
+    {
       printf("%s:\n", node->name);
       printf("  push rbp\n");
       printf("  mov rbp, rsp\n");
@@ -92,16 +98,22 @@ void gen(Node *node) {
         gen(node->stmt[i++]);
       printf("  pop rax\n");
       return;
+    }
     case ND_NUM:
+    {
       printf("  push %d\n", node->val);
       return;
+    }
     case ND_LVAR:
+    {
       gen_lval(node);
       printf("  pop rax\n");
       printf("  mov rax, [rax]\n");
       printf("  push rax\n");
       return;
+    }
     case ND_CALL:
+    {
       for(int i=node->argslen-1;i>=0;--i) {
         gen(node->callargs[i]);
       }
@@ -112,7 +124,9 @@ void gen(Node *node) {
       printf("  call %s\n", node->name);
       printf("  push rax\n");
       return;
+    }
     case ND_ASSIGN:
+    {
       gen_lval(node->lhs);
       gen(node->rhs);
 
@@ -121,6 +135,20 @@ void gen(Node *node) {
       printf("  mov [rax], rdi\n");
       printf("  push rdi\n");
       return;
+    }
+    case ND_ADDR:
+    {
+      gen_lval(node->lhs);
+      return;
+    }
+    case ND_DEREF:
+    {
+      gen(node->lhs);
+      printf("  pop rax\n");
+      printf("  mov rax, [rax]\n");
+      printf("  push rax\n");
+      return;
+    }
   }
 
   gen(node->lhs);
